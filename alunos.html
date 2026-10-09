@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Alunos</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    margin: 0;
+    padding: 15px;
+    color: #222;
+}
+
+header {
+    background: #14532d;
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    border-radius: 10px;
+}
+
+h1 {
+    font-size: 25px;
+    margin: 0;
+}
+
+.subtitulo {
+    margin-bottom: 0;
+}
+
+.caixa {
+    background: white;
+    padding: 18px;
+    margin-top: 18px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px #ccc;
+}
+
+label {
+    display: block;
+    margin-top: 14px;
+    font-weight: bold;
+}
+
+input, select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 6px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    color: white;
+    background: #166534;
+}
+
+button:active {
+    opacity: 0.8;
+}
+
+.pesquisa {
+    border: 2px solid #166534;
+}
+
+.aluno {
+    background: #f8fafc;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+}
+
+.aluno button {
+    background: #b91c1c;
+}
+
+.aviso {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+#mensagem {
+    margin-top: 12px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>GESTÃO DE ALUNOS</h1>
+    <p class="subtitulo">Registo e consulta de alunos</p>
+</header>
+
+<div class="caixa">
+    <h2>Registar aluno</h2>
+
+    <form id="formulario">
+
+        <label for="codigo">Código do aluno</label>
+        <input id="codigo" readonly placeholder="Gerado automaticamente">
+
+        <label for="nome">Nome completo do aluno *</label>
+        <input id="nome" required>
+
+        <label for="classe">Classe *</label>
+        <select id="classe" required>
+            <option value="">Selecionar classe</option>
+            <option>1.ª classe</option>
+            <option>2.ª classe</option>
+            <option>3.ª classe</option>
+            <option>4.ª classe</option>
+            <option>5.ª classe</option>
+            <option>6.ª classe</option>
+            <option>7.ª classe</option>
+            <option>8.ª classe</option>
+            <option>9.ª classe</option>
+            <option>10.ª classe</option>
+            <option>11.ª classe</option>
+            <option>12.ª classe</option>
+            <option>Outra</option>
+        </select>
+
+        <label for="encarregado">Nome do encarregado *</label>
+        <input id="encarregado" required>
+
+        <label for="contacto">Contacto do encarregado *</label>
+        <input id="contacto" type="tel" required>
+
+        <label for="nascimento">Data de nascimento</label>
+        <input id="nascimento" type="date">
+
+        <label for="morada">Morada</label>
+        <input id="morada">
+
+        <label for="estado">Estado do aluno</label>
+        <select id="estado">
+            <option>Ativo</option>
+            <option>Inativo</option>
+        </select>
+
+        <button type="submit">Guardar aluno</button>
+        <button type="button" onclick="limparFormulario()">
+            Limpar formulário
+        </button>
+
+        <p id="mensagem"></p>
+    </form>
+</div>
+
+<div class="caixa">
+    <h2>Alunos registados</h2>
+
+    <input
+        id="pesquisa"
+        class="pesquisa"
+        placeholder="Pesquisar por nome ou código..."
+        oninput="mostrarAlunos()"
+    >
+
+    <p id="total">Total de alunos: 0</p>
+    <div id="lista"></div>
+
+    <p class="aviso">
+        Importante: esta versão guarda os dados apenas no armazenamento
+        local deste navegador. Não sincroniza os dados com outros
+        telemóveis e não substitui uma cópia de segurança.
+    </p>
+</div>
+
+<script>
+const CHAVE = "gestao_alunos_escola_v1";
+
+function obterAlunos() {
+    try {
+        return JSON.parse(localStorage.getItem(CHAVE)) || [];
+    } catch (erro) {
+        return [];
+    }
+}
+
+function guardarDados(alunos) {
+    localStorage.setItem(CHAVE, JSON.stringify(alunos));
+}
+
+function proximoCodigo() {
+    const alunos = obterAlunos();
+    let maior = 0;
+
+    alunos.forEach(aluno => {
+        const numero = parseInt(aluno.codigo.replace("AL", ""), 10);
+        if (!isNaN(numero) && numero > maior) {
+            maior = numero;
+        }
+    });
+
+    return "AL" + String(maior + 1).padStart(3, "0");
+}
+
+function limparFormulario() {
+    document.getElementById("formulario").reset();
+    document.getElementById("codigo").value = proximoCodigo();
+    document.getElementById("mensagem").textContent = "";
+}
+
+document.getElementById("formulario").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const alunos = obterAlunos();
+
+    const aluno = {
+        codigo: proximoCodigo(),
+        nome: document.getElementById("nome").value.trim(),
+        classe: document.getElementById("classe").value,
+        encarregado: document.getElementById("encarregado").value.trim(),
+        contacto: document.getElementById("contacto").value.trim(),
+        nascimento: document.getElementById("nascimento").value,
+        morada: document.getElementById("morada").value.trim(),
+        estado: document.getElementById("estado").value
+    };
+
+    if (!aluno.nome || !aluno.classe ||
+        !aluno.encarregado || !aluno.contacto) {
+        document.getElementById("mensagem").textContent =
+            "Preenche todos os campos obrigatórios.";
+        return;
+    }
+
+    alunos.push(aluno);
+
+    try {
+        guardarDados(alunos);
+        document.getElementById("mensagem").textContent =
+            "Aluno guardado com sucesso: " + aluno.codigo;
+
+        limparFormulario();
+        mostrarAlunos();
+    } catch (erro) {
+        document.getElementById("mensagem").textContent =
+            "Não foi possível guardar. Verifica o armazenamento disponível.";
+    }
+});
+
+function mostrarAlunos() {
+    const alunos = obterAlunos();
+    const termo = document.getElementById("pesquisa").value.toLowerCase();
+    const lista = document.getElementById("lista");
+
+    lista.innerHTML = "";
+
+    const filtrados = alunos.filter(aluno =>
+        aluno.nome.toLowerCase().includes(termo) ||
+        aluno.codigo.toLowerCase().includes(termo)
+    );
+
+    document.getElementById("total").textContent =
+        "Total de alunos: " + alunos.length;
+
+    if (filtrados.length === 0) {
+        lista.textContent = "Nenhum aluno encontrado.";
+        return;
+    }
+
+    filtrados.forEach(aluno => {
+        const cartao = document.createElement("div");
+        cartao.className = "aluno";
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = aluno.codigo + " — " + aluno.nome;
+        cartao.appendChild(titulo);
+
+        const detalhes = document.createElement("p");
+        detalhes.textContent =
+            "Classe: " + aluno.classe +
+            " | Estado: " + aluno.estado +
+            " | Encarregado: " + aluno.encarregado +
+            " | Contacto: " + aluno.contacto +
+            " | Nascimento: " + (aluno.nascimento || "Não indicado") +
+            " | Morada: " + (aluno.morada || "Não indicada");
+
+        cartao.appendChild(detalhes);
+        lista.appendChild(cartao);
+    });
+}
+
+document.getElementById("codigo").value = proximoCodigo();
+mostrarAlunos();
+</script>
+
+</body>
+</html>
